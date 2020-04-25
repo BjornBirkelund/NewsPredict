@@ -18,6 +18,7 @@ export FLASK_DEBUG=1
 #### react setup:
 
 ### Planning Spreadsheet:
+<img width="1389" alt="Screen Shot 2020-04-26 at 12 48 04 AM" src="https://user-images.githubusercontent.com/57355719/80292628-f0cb9600-8757-11ea-8b7a-e96aa6374aad.png">
 
 
 
