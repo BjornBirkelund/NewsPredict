@@ -5,12 +5,16 @@
 #### python setup:
 
 `pip install newspaper3k`
+
 `pip install -U scikit-learn`
+
 `pip install pandas`
 
 #### flask setup:
 `pip install pipenv`
+
 `pipenv install flask flask-sqlalchemy`
+
 `pipenv shell`
 
 export FLASK_APP=api
