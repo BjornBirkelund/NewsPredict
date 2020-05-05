@@ -16,6 +16,7 @@
 `pipenv install flask flask-sqlalchemy`
 
 `pipenv shell`
+
 export FLASK_APP=api
 
 export FLASK_DEBUG=1
