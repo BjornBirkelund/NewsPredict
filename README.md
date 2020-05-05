@@ -10,6 +10,8 @@
 
 `pip install pandas`
 
+`pip install nltk`
+
 #### flask setup:
 `pip install pipenv`
 
