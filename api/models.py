@@ -1,8 +1,9 @@
 from . import db
+from sqlalchemy.types import JSON
 
 class Article(db.Model):
-    # url = db.Column(db.String, primary_key = True)
-    
     id = db.Column(db.Integer, primary_key = True)
-    title = db.Column(db.String)
-    sentiment = db.Column(db.String)
+    accuracy = db.Column(db.Integer)
+    
+class jsonData(db.Model):
+    data = db.Column(db.JSON,primary_key=True)
