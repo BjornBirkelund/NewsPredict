@@ -10,6 +10,8 @@
 
 `pip install pandas`
 
+`pip install nltk`
+
 #### flask setup:
 `pip install pipenv`
 
@@ -18,7 +20,10 @@
 `pipenv shell`
 
 export FLASK_APP=api
+
 export FLASK_DEBUG=1
+
+flask run
 #### react setup:
 
 ### Data Planning Spreadsheet:
