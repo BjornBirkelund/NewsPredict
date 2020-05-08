@@ -14,23 +14,25 @@ from pandas.io.json import json_normalize
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer as tfidf
 from sklearn.model_selection import train_test_split
+import pickle
 
 
-with open('stocknews.json', 'r') as f:
-    datastore = json.load(f,strict=False)
-#Use the new datastore datastructure
-dataset = json_normalize(datastore['data'])[['title','text','sentiment']]
-# print(len(dataset.index))
-dataset.sort_values("title", inplace = True) 
-# dropping ALL duplicte values 
-dataset.drop_duplicates(subset ="title", 
-                     keep = False, inplace = True) 
-dataset = sklearn.utils.shuffle(dataset)
 
-# print(len(dataset.index))
-# print("Number of Positive:",list(dataset["sentiment"]).count("Positive"))
-# print("Number of Negative:",list(dataset["sentiment"]).count("Negative"))
-# print("Number of Neutral:",list(dataset["sentiment"]).count("Neutral"))
+
+def loadDataset():
+    with open('stocknews.json', 'r') as f:
+        datastore = json.load(f,strict=False)
+    dataset = pd.json_normalize(datastore['data'])[['title','text','sentiment']]
+    dataset.sort_values("title", inplace = True) 
+    # dropping ALL duplicte values 
+    dataset.drop_duplicates(subset ="title", 
+                        keep = False, inplace = True) 
+    dataset = sklearn.utils.shuffle(dataset)
+    # print(len(dataset.index))
+    # print("Number of Positive:",list(dataset["sentiment"]).count("Positive"))
+    # print("Number of Negative:",list(dataset["sentiment"]).count("Negative"))
+    # print("Number of Neutral:",list(dataset["sentiment"]).count("Neutral")
+    return dataset
 
 
 #Process
@@ -46,6 +48,7 @@ dataset = sklearn.utils.shuffle(dataset)
 #     return cleaned
 #make all words go to root word to reduce clutter feks connection, connected, connecting become connect
 
+####################
 def stemWords(unstemmed):
     ps = PorterStemmer()
     stemmed_words=[]
@@ -80,7 +83,7 @@ def getArticleData(url):
 
 
 
-def trainModel():
+def trainModel(dataset):
     ##global variables
     vectorizer = TfidfVectorizer (min_df = 5,max_df = .8, ngram_range=(1,2))
     classifier = MultinomialNB(alpha=1.0, fit_prior=True, class_prior=None)
@@ -89,6 +92,11 @@ def trainModel():
     X_train, X_test, Y_train, Y_test = train_test_split(processed_features, dataset['sentiment'], train_size = 0.8 ,test_size=0.2, random_state=42)
     classifier.fit(X_train, Y_train)
     
+    #create a picle of the classifier to use it later.
+    pickle.dump(vectorizer, open('vectorizer.pkl', 'wb'))
+    pickle.dump(classifier, open('preTrainedModel.pkl', 'wb'))
+    pickle.dump(dataset, open('dataset.pkl', 'wb'))
+
     predictions = classifier.predict(X_test)
     
     from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
@@ -96,32 +104,43 @@ def trainModel():
     # print(confusion_matrix(Y_test,predictions))
     # print(classification_report(Y_test,predictions))
     # print(accuracy_score(Y_test, predictions))
-    
-    return float(np.round(accuracy_score(Y_test, predictions), 2)),vectorizer,classifier
+    accuracy = float(np.round(accuracy_score(Y_test, predictions), 2))
+    return accuracy
 
 
-def testArticle(url,vectorizer,classifier):
-    processed_features = vectorizer.fit_transform(dataset['cleaned']).toarray()
+def testArticle(url):
+    # processed_features = vectorizer.fit_transform(dataset['cleaned']).toarray()
     tests = pd.DataFrame(columns = ('title','text'))
     
     newtitle,newtext = getArticleData(url)
     
     tests.loc[0] = [newtitle,newtext]
 
-    preprocessing(tests)
+    preprocessing(tests) #clean the test data
     # print(tests)
-    test = tests['cleaned']
+    test = tests['cleaned'] #put cleaned data in a new column
+
+    #need to retrieve classifier and vectorizer which were pickled
+    import os
+    THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+    modelPath = os.path.join(THIS_FOLDER, 'preTrainedModel.pkl')
+    vectorizerPath = os.path.join(THIS_FOLDER, 'vectorizer.pkl')
+    
+    classifier = pickle.load(open(modelPath,'rb'))
+    vectorizer = pickle.load(open(vectorizerPath,'rb'))
     prediction = classifier.predict(vectorizer.transform(test))
     tests['prediction'] = str(prediction)
     return newtitle,str(prediction)
 
 def main():
-    score,vectorizer,classifier = trainModel()
-    # print(score)
+# we need to load the dataset
+    dataset = loadDataset()
+    accuracy = trainModel(dataset)
+    print(accuracy)
     url = input("Paste in an articles url to see it's sentiment prediction: ")
-    title,prediction = testArticle(url,vectorizer,classifier)
+    title,prediction = testArticle(url)
     print(title)
-    print(type(prediction))
+    print(prediction)
 
 if __name__ == "__main__":
     #Do some local work which should not be reflected while importing this file to another module.
